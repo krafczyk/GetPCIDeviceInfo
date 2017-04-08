@@ -79,13 +79,13 @@ int main(int argc, char** argv) {
 	std::string directory = "";
 
 	ArgParse::ArgParser Parser("Program to print PCI Device information inside a directory");
+
 	Parser.AddArgument("-d/--directory", "The directory from which to get PCI information", &directory, ArgParse::Argument::Required);
+
 	if (Parser.ParseArgs(argc, argv) < 0) {
 		fprintf(stderr, "There was a problem parsing the arguments!\n ");
 		return -1;
 	}
-
-	printf("The directory passed was: (%s)\n", directory.c_str());
 
 	struct pci_access *pacc;
 	pacc = pci_alloc();
@@ -124,8 +124,8 @@ int main(int argc, char** argv) {
 
 	pci_lookup_name(pacc, class_name, sizeof(class_name), PCI_LOOKUP_CLASS, class_id);
 
-	printf("This device's information is:\n");
-	printf("Class: (%s)\n", class_name);
+	//printf("This device's information is:\n");
+	//printf("Class: (%s)\n", class_name);
 	printf("Vendor: (%s)\n", vendor_name);
 	printf("Device: (%s)\n", device_name);
 
