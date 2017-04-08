@@ -7,7 +7,15 @@
 
 #include "ArgParse/ArgParse.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "pci/pci.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 int get_hex_number_from_file(const std::string& filepath, u16& hex_number) {
 	if (access( filepath.c_str(), F_OK) == -1) {
