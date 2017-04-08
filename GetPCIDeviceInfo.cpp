@@ -53,6 +53,28 @@ int get_vendor_id(const std::string& directory, u16& vendor_id) {
 	return 0;
 }
 
+int get_device_id(const std::string& directory, u16& device_id) {
+	std::string device_filepath = directory + "/device";
+
+	if (get_hex_number_from_file(device_filepath, device_id) < 0) {
+		fprintf(stderr, "There was a problem getting the device ID from the file\n");
+		device_id = 0;
+		return -1;
+	}
+	return 0;
+}
+
+int get_class_id(const std::string& directory, u16& class_id) {
+	std::string class_filepath = directory + "/class";
+
+	if (get_hex_number_from_file(class_filepath, class_id) < 0) {
+		fprintf(stderr, "There was a problem getting the device ID from the file\n");
+		class_id = 0;
+		return -1;
+	}
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	std::string directory = "";
 
@@ -72,11 +94,40 @@ int main(int argc, char** argv) {
 	u16 vendor_id = 0;
 
 	if( get_vendor_id(directory, vendor_id) < 0) {
-		fprintf(stderr, "Couldn't get vendor id!");
+		fprintf(stderr, "Couldn't get vendor id!\n");
 		return -2;
 	}
 
-	printf("The vendor id was: (%i)\n", vendor_id);
+	u16 device_id = 0;
+
+	if( get_device_id(directory, device_id) < 0) {
+		fprintf(stderr, "Couldn't get device id!\n");
+		return -2;
+	}
+
+	u16 class_id = 0;
+	if( get_class_id(directory, class_id) < 0) {
+		fprintf(stderr, "Couldn't get class id!\n");
+		return -3;
+	}
+
+	size_t PCI_STRING_BUFF_SIZE=1024;
+	char vendor_name[PCI_STRING_BUFF_SIZE];
+
+	pci_lookup_name(pacc, vendor_name, sizeof(vendor_name), PCI_LOOKUP_VENDOR, vendor_id);
+
+	char device_name[PCI_STRING_BUFF_SIZE];
+
+	pci_lookup_name(pacc, device_name, sizeof(device_name), PCI_LOOKUP_DEVICE, vendor_id, device_id);
+
+	char class_name[PCI_STRING_BUFF_SIZE];
+
+	pci_lookup_name(pacc, class_name, sizeof(class_name), PCI_LOOKUP_CLASS, class_id);
+
+	printf("This device's information is:\n");
+	printf("Class: (%s)\n", class_name);
+	printf("Vendor: (%s)\n", vendor_name);
+	printf("Device: (%s)\n", device_name);
 
 	pci_cleanup(pacc);
 
