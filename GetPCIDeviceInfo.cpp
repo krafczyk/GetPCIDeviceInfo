@@ -17,7 +17,7 @@ extern "C" {
 }
 #endif
 
-int get_hex_number_from_file(const std::string& filepath, u16& hex_number) {
+int get_hex_number_from_file(const std::string& filepath, u32& hex_number) {
 	if (access( filepath.c_str(), F_OK) == -1) {
 		fprintf(stderr, "File (%s) doesn't exist\n", filepath.c_str());
 		return -1;
@@ -42,7 +42,7 @@ int get_hex_number_from_file(const std::string& filepath, u16& hex_number) {
 	return 0;
 }
 
-int get_vendor_id(const std::string& directory, u16& vendor_id) {
+int get_vendor_id(const std::string& directory, u32& vendor_id) {
 	std::string vendor_filepath = directory + "/vendor";
 
 	if (get_hex_number_from_file(vendor_filepath, vendor_id) < 0) {
@@ -53,7 +53,7 @@ int get_vendor_id(const std::string& directory, u16& vendor_id) {
 	return 0;
 }
 
-int get_device_id(const std::string& directory, u16& device_id) {
+int get_device_id(const std::string& directory, u32& device_id) {
 	std::string device_filepath = directory + "/device";
 
 	if (get_hex_number_from_file(device_filepath, device_id) < 0) {
@@ -64,7 +64,7 @@ int get_device_id(const std::string& directory, u16& device_id) {
 	return 0;
 }
 
-int get_class_id(const std::string& directory, u16& class_id) {
+int get_class_id(const std::string& directory, u32& class_id) {
 	std::string class_filepath = directory + "/class";
 
 	if (get_hex_number_from_file(class_filepath, class_id) < 0) {
@@ -77,10 +77,12 @@ int get_class_id(const std::string& directory, u16& class_id) {
 
 int main(int argc, char** argv) {
 	std::string directory = "";
+	bool verbose = false;
 
 	ArgParse::ArgParser Parser("Program to print PCI Device information inside a directory");
 
 	Parser.AddArgument("-d/--directory", "The directory from which to get PCI information", &directory, ArgParse::Argument::Required);
+	Parser.AddArgument("--verbose", "Whether to activate verbose output", &verbose);
 
 	if (Parser.ParseArgs(argc, argv) < 0) {
 		fprintf(stderr, "There was a problem parsing the arguments!\n ");
@@ -91,24 +93,36 @@ int main(int argc, char** argv) {
 	pacc = pci_alloc();
 	pci_init(pacc);
 
-	u16 vendor_id = 0;
+	u32 class_id = 0;
+	if( get_class_id(directory, class_id) < 0) {
+		fprintf(stderr, "Couldn't get class id!\n");
+		return -3;
+	}
+
+	if (verbose) {
+		printf("Got ClassID: %#080x\n", class_id);
+	}
+
+	u32 vendor_id = 0;
 
 	if( get_vendor_id(directory, vendor_id) < 0) {
 		fprintf(stderr, "Couldn't get vendor id!\n");
 		return -2;
 	}
 
-	u16 device_id = 0;
+	if (verbose) {
+		printf("Got VendorID: %#080x\n", vendor_id);
+	}
+
+	u32 device_id = 0;
 
 	if( get_device_id(directory, device_id) < 0) {
 		fprintf(stderr, "Couldn't get device id!\n");
 		return -2;
 	}
 
-	u16 class_id = 0;
-	if( get_class_id(directory, class_id) < 0) {
-		fprintf(stderr, "Couldn't get class id!\n");
-		return -3;
+	if (verbose) {
+		printf("Got DeviceID: %#080x\n", device_id);
 	}
 
 	size_t PCI_STRING_BUFF_SIZE=1024;
@@ -125,7 +139,7 @@ int main(int argc, char** argv) {
 	pci_lookup_name(pacc, class_name, sizeof(class_name), PCI_LOOKUP_CLASS, class_id);
 
 	//printf("This device's information is:\n");
-	//printf("Class: (%s)\n", class_name);
+	printf("Class: (%s)\n", class_name);
 	printf("Vendor: (%s)\n", vendor_name);
 	printf("Device: (%s)\n", device_name);
 
